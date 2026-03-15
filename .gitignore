@@ -24,7 +24,7 @@ Thumbs.db
 .claude/
 
 # Database backups (may contain sensitive data)
-*.sql
+studio_pnl_backup_before_v2.sql
 
 # Docker volumes
 postgres_data/
