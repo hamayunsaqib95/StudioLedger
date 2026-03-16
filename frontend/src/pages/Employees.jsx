@@ -70,7 +70,7 @@ export default function Employees() {
   }
 
   function validateForm() {
-    if (!form.full_name.trim() || !form.role.trim() || !String(form.monthly_salary_pkr).trim() || !form.employment_type.trim() || !form.assigned_po) {
+    if (!form.full_name.trim() || !form.role.trim() || !String(form.monthly_salary_pkr).trim() || !form.employment_type.trim()) {
       setError("Please complete all required employee fields.");
       return false;
     }
@@ -85,7 +85,7 @@ export default function Employees() {
   async function save(e) {
     e.preventDefault();
     if (!validateForm()) return;
-    const payload = { ...form, assigned_po: Number(form.assigned_po), monthly_salary_pkr: Number(form.monthly_salary_pkr) };
+    const payload = { ...form, assigned_po: form.assigned_po ? Number(form.assigned_po) : null, monthly_salary_pkr: Number(form.monthly_salary_pkr) };
     if (editingId) {
       await api.put(`/employees/${editingId}`, payload);
     } else {
@@ -234,7 +234,9 @@ export default function Employees() {
                       </span>
                     </td>
                     <td style={styles.td}>{emp.employment_type}</td>
-                    <td style={styles.td}>{emp.po_name}</td>
+                    <td style={styles.td}>
+                      {emp.po_name || <span style={{ fontSize: 11, fontWeight: 700, background: "#f0fdf4", color: "#166534", padding: "2px 8px", borderRadius: 999 }}>Shared</span>}
+                    </td>
                     <td style={styles.td}>
                       <span style={styles.salaryText}>
                         {Number(emp.monthly_salary_pkr || 0).toLocaleString()}
@@ -398,11 +400,16 @@ export default function Employees() {
             </select>
           </div>
           <div style={styles.field}>
-            <label style={styles.label}>Assign to PO</label>
+            <label style={styles.label}>Assign to PO <span style={{ color: "#94a3b8", fontWeight: 400 }}>(optional)</span></label>
             <select style={styles.input} value={form.assigned_po} onChange={(e) => setForm({ ...form, assigned_po: e.target.value })}>
-              <option value="">Select PO</option>
+              <option value="">Shared Resource (no PO)</option>
               {productOwners.map((po) => <option key={po.id} value={po.id}>{po.name}</option>)}
             </select>
+            {!form.assigned_po && (
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                Art, UI, Marketing and other shared roles can be left unassigned and allocated per-month via Resource Allocations.
+              </div>
+            )}
           </div>
           <div style={styles.field}>
             <label style={styles.label}>Status</label>
