@@ -2,14 +2,6 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 const bcrypt = require("bcryptjs");
-const { sendWelcomeEmail } = require("../utils/email");
-
-function generateTempPassword() {
-  const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#";
-  let pwd = "";
-  for (let i = 0; i < 10; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
-  return pwd;
-}
 
 // GET all users
 router.get("/", async (req, res) => {
@@ -102,8 +94,7 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const tempPassword = generateTempPassword();
-    const passwordHash = await bcrypt.hash(tempPassword, 10);
+    const passwordHash = await bcrypt.hash(password || "Admin@1234", 10);
 
     const userInsert = await client.query(
       `
@@ -114,10 +105,9 @@ router.post("/", async (req, res) => {
         role_id,
         status,
         created_by,
-        must_change_password,
         created_at
       )
-      VALUES ($1,$2,$3,$4,$5,$6,TRUE,NOW())
+      VALUES ($1,$2,$3,$4,$5,$6,NOW())
       RETURNING id, full_name, email, role_id, status
       `,
       [
@@ -197,17 +187,9 @@ router.post("/", async (req, res) => {
 
     await client.query("COMMIT");
 
-    // Send welcome email (fire and forget)
-    sendWelcomeEmail({
-      to: email,
-      fullName: full_name,
-      email,
-      tempPassword
-    }).catch((err) => console.error("Welcome email failed:", err.message));
-
     res.status(201).json({
       success: true,
-      message: "User created successfully. Login credentials sent to their email.",
+      message: "User created successfully.",
       data: {
         ...newUser,
         role: role_name
