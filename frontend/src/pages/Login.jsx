@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../api/api";
 
 export default function Login({ setUser }) {
@@ -6,6 +6,13 @@ export default function Login({ setUser }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -24,9 +31,9 @@ export default function Login({ setUser }) {
   }
 
   return (
-    <div style={styles.wrapper}>
-      {/* Left Panel */}
-      <div style={styles.left}>
+    <div style={{ ...styles.wrapper, flexDirection: isMobile ? "column" : "row" }}>
+      {/* Left Panel — hidden on mobile */}
+      <div style={{ ...styles.left, display: isMobile ? "none" : "flex" }}>
         <div style={styles.leftContent}>
           <div style={styles.logoWrap}>
             <div style={styles.logoMark}>
@@ -142,7 +149,8 @@ const styles = {
   wrapper: {
     minHeight: "100vh",
     display: "flex",
-    fontFamily: "'Inter', system-ui, sans-serif"
+    fontFamily: "'Inter', system-ui, sans-serif",
+    flexDirection: "row"
   },
   left: {
     width: "48%",

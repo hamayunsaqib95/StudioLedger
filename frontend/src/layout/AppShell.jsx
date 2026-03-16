@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Icons = {
   dashboard: (
@@ -111,6 +111,18 @@ const menuSections = [
 
 export default function AppShell({ user, page, setPage, children, onLogout }) {
   const [hoveredItem, setHoveredItem] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) setSidebarOpen(false);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const userInitials = (user?.fullName || user?.full_name || "U")
     .split(" ")
@@ -129,9 +141,36 @@ export default function AppShell({ user, page, setPage, children, onLogout }) {
   };
   const roleStyle = roleColors[user?.role] || { bg: "#f1f5f9", color: "#475569" };
 
+  const handleNavClick = (key) => {
+    setPage(key);
+    if (isMobile) setSidebarOpen(false);
+  };
+
+  const sidebarStyle = isMobile
+    ? {
+        ...styles.sidebar,
+        position: "fixed",
+        top: 0,
+        left: sidebarOpen ? 0 : -280,
+        height: "100vh",
+        zIndex: 1000,
+        transition: "left 0.25s ease",
+        boxShadow: sidebarOpen ? "4px 0 24px rgba(0,0,0,0.3)" : "none"
+      }
+    : styles.sidebar;
+
   return (
     <div style={styles.layout}>
-      <aside style={styles.sidebar}>
+      {/* Mobile overlay */}
+      {isMobile && sidebarOpen && (
+        <div
+          style={styles.overlay}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside style={sidebarStyle}>
         {/* Logo */}
         <div style={styles.logoArea}>
           <div style={styles.logoIcon}>
@@ -139,10 +178,13 @@ export default function AppShell({ user, page, setPage, children, onLogout }) {
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
             </svg>
           </div>
-          <div>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={styles.logoText}>Invogue Technologies</div>
             <div style={styles.logoSub}>Studio P&L Platform</div>
           </div>
+          {isMobile && (
+            <button style={styles.closeBtn} onClick={() => setSidebarOpen(false)}>✕</button>
+          )}
         </div>
 
         {/* User Card */}
@@ -178,14 +220,11 @@ export default function AppShell({ user, page, setPage, children, onLogout }) {
                         ...(isActive ? styles.navItemActive : {}),
                         ...(isHovered && !isActive ? styles.navItemHover : {})
                       }}
-                      onClick={() => setPage(item.key)}
+                      onClick={() => handleNavClick(item.key)}
                       onMouseEnter={() => setHoveredItem(item.key)}
                       onMouseLeave={() => setHoveredItem(null)}
                     >
-                      <span style={{
-                        ...styles.navIcon,
-                        color: isActive ? "#fff" : "#94a3b8"
-                      }}>
+                      <span style={{ ...styles.navIcon, color: isActive ? "#fff" : "#94a3b8" }}>
                         {item.icon}
                       </span>
                       <span style={styles.navLabel}>{item.label}</span>
@@ -210,8 +249,29 @@ export default function AppShell({ user, page, setPage, children, onLogout }) {
         </button>
       </aside>
 
-      <main style={styles.main}>
-        <div style={{ minHeight: "calc(100vh - 100px)" }}>{children}</div>
+      {/* Main content */}
+      <main style={{ ...styles.main, paddingTop: isMobile ? 72 : 28 }}>
+        {/* Mobile top bar */}
+        {isMobile && (
+          <div style={styles.topBar}>
+            <button style={styles.hamburger} onClick={() => setSidebarOpen(true)}>
+              <span style={styles.hamburgerLine} />
+              <span style={styles.hamburgerLine} />
+              <span style={styles.hamburgerLine} />
+            </button>
+            <div style={styles.topBarLogo}>
+              <div style={styles.topBarLogoIcon}>
+                <svg width="14" height="14" fill="white" viewBox="0 0 24 24">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+              </div>
+              <span style={styles.topBarTitle}>Studio Ledger</span>
+            </div>
+            <div style={styles.topBarAvatar}>{userInitials}</div>
+          </div>
+        )}
+
+        <div style={{ minHeight: "calc(100vh - 100px)", maxWidth: "100%", overflowX: "auto" }}>{children}</div>
         <footer style={styles.footer}>
           <span style={styles.footerCompany}>Invogue Technologies</span>
           <span style={styles.footerSep}>·</span>
@@ -230,6 +290,12 @@ const styles = {
     minHeight: "100vh",
     background: "#f1f5f9",
     fontFamily: "'Inter', system-ui, sans-serif"
+  },
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.5)",
+    zIndex: 999
   },
   sidebar: {
     width: 256,
@@ -262,15 +328,27 @@ const styles = {
     boxShadow: "0 4px 12px rgba(99,102,241,0.4)"
   },
   logoText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 800,
     color: "#fff",
-    letterSpacing: "-0.02em"
+    letterSpacing: "-0.02em",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
   },
   logoSub: {
     fontSize: 11,
     color: "#475569",
     marginTop: 1
+  },
+  closeBtn: {
+    background: "transparent",
+    border: "none",
+    color: "#94a3b8",
+    fontSize: 16,
+    cursor: "pointer",
+    padding: "4px 6px",
+    flexShrink: 0
   },
   userCard: {
     display: "flex",
@@ -389,13 +467,75 @@ const styles = {
     marginTop: 4,
     transition: "background 0.15s ease"
   },
+  topBar: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 56,
+    background: "#0f172a",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0 16px",
+    zIndex: 998,
+    boxShadow: "0 2px 12px rgba(0,0,0,0.2)"
+  },
+  hamburger: {
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    display: "flex",
+    flexDirection: "column",
+    gap: 5,
+    padding: 6
+  },
+  hamburgerLine: {
+    display: "block",
+    width: 22,
+    height: 2,
+    background: "#e2e8f0",
+    borderRadius: 2
+  },
+  topBarLogo: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8
+  },
+  topBarLogoIcon: {
+    width: 26,
+    height: 26,
+    background: "linear-gradient(135deg, #6366f1, #2563eb)",
+    borderRadius: 7,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  topBarTitle: {
+    color: "#fff",
+    fontWeight: 700,
+    fontSize: 15
+  },
+  topBarAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    background: "linear-gradient(135deg, #6366f1, #2563eb)",
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: 700,
+    fontSize: 12
+  },
   main: {
     flex: 1,
     padding: 28,
     minHeight: "100vh",
     overflowY: "auto",
     display: "flex",
-    flexDirection: "column"
+    flexDirection: "column",
+    minWidth: 0
   },
   footer: {
     marginTop: 40,
@@ -406,7 +546,8 @@ const styles = {
     justifyContent: "center",
     gap: 8,
     fontSize: 12,
-    color: "#94a3b8"
+    color: "#94a3b8",
+    flexWrap: "wrap"
   },
   footerCompany: { fontWeight: 700, color: "#64748b" },
   footerDev: { fontWeight: 600, color: "#6366f1" },

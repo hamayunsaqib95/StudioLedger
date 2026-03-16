@@ -57,3 +57,54 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #cbd5e1;
   border-radius: 999px;
 }
+
+/* ── Responsive utilities ── */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile: hide left login panel */
+@media (max-width: 767px) {
+  /* Login left panel */
+  [data-login-left] {
+    display: none !important;
+  }
+
+  /* Main content padding */
+  [data-main-content] {
+    padding: 16px !important;
+  }
+
+  /* Page padding on mobile */
+  .page-pad {
+    padding: 16px !important;
+  }
+
+  /* Stat/KPI grids collapse to 2 cols */
+  .grid-kpi {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Any 2-col grid collapses to 1 col */
+  .grid-2col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Flex rows wrap on mobile */
+  .flex-row-wrap {
+    flex-wrap: wrap !important;
+  }
+
+  /* Hide non-essential table columns on mobile */
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-kpi {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
