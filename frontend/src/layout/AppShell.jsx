@@ -85,7 +85,7 @@ const menuSections = [
     items: [
       { key: "games", label: "Games & Analytics", icon: Icons.games, roles: ["CEO", "COO", "Team Lead", "PO"] },
       { key: "revenueUA", label: "Revenue & UA", icon: Icons.revenue, roles: ["CEO", "COO", "Team Lead", "PO"] },
-      { key: "poAnalytics", label: "PO Intelligence", icon: Icons.poIntel, roles: ["CEO", "COO", "Team Lead"] },
+      { key: "poAnalytics", label: "PO Dashboard", icon: Icons.poIntel, roles: ["CEO", "COO", "Team Lead"] },
       { key: "studioAnalytics", label: "Studio Analytics", icon: Icons.studioAnalytics, roles: ["CEO", "COO", "Team Lead"] }
     ]
   },

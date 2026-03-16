@@ -70,7 +70,7 @@ export default function POAnalytics() {
     <div style={styles.page}>
       <div style={styles.topbar}>
         <div>
-          <h1 style={styles.pageTitle}>PO Intelligence</h1>
+          <h1 style={styles.pageTitle}>PO Dashboard</h1>
           <p style={styles.pageSubtitle}>
             Product Owner salary, profitability, incentive, and team leadership view
           </p>
