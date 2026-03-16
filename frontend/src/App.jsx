@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ChangePasswordModal from "./components/ChangePasswordModal";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Games from "./pages/Games";
@@ -22,6 +23,7 @@ function App() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [page, setPage] = useState("dashboard");
   const [toast, setToast] = useState(null);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   useEffect(() => {
     registerToastHandler(setToast);
@@ -93,7 +95,23 @@ function App() {
   }
 
   if (!user) {
-    return <Login setUser={setUser} />;
+    return <Login setUser={(u) => {
+      setUser(u);
+      if (u?.mustChangePassword) setShowChangePassword(true);
+    }} />;
+  }
+
+  if (user?.mustChangePassword || showChangePassword) {
+    return (
+      <ChangePasswordModal
+        forced={!!user?.mustChangePassword}
+        onDone={() => {
+          setUser((u) => ({ ...u, mustChangePassword: false }));
+          setShowChangePassword(false);
+        }}
+        onCancel={() => setShowChangePassword(false)}
+      />
+    );
   }
 
   const pageAllowed = isPageAllowed(user, page);
@@ -101,10 +119,18 @@ function App() {
   return (
     <>
       <Toast toast={toast} clearToast={clearToast} />
+      {showChangePassword && !user?.mustChangePassword && (
+        <ChangePasswordModal
+          forced={false}
+          onDone={() => setShowChangePassword(false)}
+          onCancel={() => setShowChangePassword(false)}
+        />
+      )}
       <AppShell
         user={user}
         page={page}
         setPage={setPage}
+        onChangePassword={() => setShowChangePassword(true)}
         onLogout={() => {
           localStorage.removeItem("token");
           localStorage.removeItem("user");

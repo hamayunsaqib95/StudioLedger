@@ -109,7 +109,7 @@ const menuSections = [
   }
 ];
 
-export default function AppShell({ user, page, setPage, children, onLogout }) {
+export default function AppShell({ user, page, setPage, children, onLogout, onChangePassword }) {
   const [hoveredItem, setHoveredItem] = useState(null);
 
   const userInitials = (user?.fullName || user?.full_name || "U")
@@ -197,6 +197,17 @@ export default function AppShell({ user, page, setPage, children, onLogout }) {
             );
           })}
         </nav>
+
+        {/* Change Password */}
+        <button
+          style={styles.logoutBtn}
+          onClick={onChangePassword}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(99,102,241,0.15)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+        >
+          <span style={{ color: "#818cf8" }}>🔑</span>
+          <span style={{ color: "#818cf8", fontWeight: 600 }}>Change Password</span>
+        </button>
 
         {/* Logout */}
         <button

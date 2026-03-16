@@ -4,7 +4,6 @@ import api from "../api/api";
 const emptyForm = {
   full_name: "",
   email: "",
-  password: "",
   role_name: "PO",
   status: "Active"
 };
@@ -39,7 +38,6 @@ export default function UsersPage({ user }) {
   function validateForm() {
     if (!form.full_name.trim()) { setError("Full name is required"); return false; }
     if (!form.email.trim()) { setError("Email is required"); return false; }
-    if (!form.password.trim()) { setError("Password is required"); return false; }
     if (!form.role_name) { setError("Role is required"); return false; }
     setError("");
     return true;
@@ -55,12 +53,11 @@ export default function UsersPage({ user }) {
       await api.post("/users", {
         full_name: form.full_name.trim(),
         email: form.email.trim(),
-        password: form.password,
         role_name: form.role_name,
         status: form.status,
         created_by: user?.full_name || "System"
       });
-      setSuccess("User created successfully");
+      setSuccess("User created! Login credentials sent to their email.");
       setForm(emptyForm);
       await loadUsers();
     } catch (err) {
@@ -119,10 +116,6 @@ export default function UsersPage({ user }) {
               <input style={styles.input} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Enter email" />
             </div>
             <div style={styles.field}>
-              <label style={styles.label}>Password</label>
-              <input style={styles.input} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Enter password" />
-            </div>
-            <div style={styles.field}>
               <label style={styles.label}>Role</label>
               <select style={styles.input} value={form.role_name} onChange={(e) => setForm({ ...form, role_name: e.target.value })}>
                 <option value="CEO">CEO</option>
@@ -140,6 +133,9 @@ export default function UsersPage({ user }) {
                 <option value="Pending Activation">Pending Activation</option>
                 <option value="Inactive">Inactive</option>
               </select>
+            </div>
+            <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#1d4ed8" }}>
+              A temporary password will be auto-generated and emailed to the user. They must change it on first login.
             </div>
             {error && <div style={styles.errorBox}>{error}</div>}
             {success && <div style={styles.successBox}>{success}</div>}

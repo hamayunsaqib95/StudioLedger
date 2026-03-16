@@ -15,7 +15,7 @@ router.post("/login", async (req, res) => {
     }
 
     const result = await db.query(
-      `SELECT u.id, u.full_name, u.email, u.password_hash, u.status, r.name AS role
+      `SELECT u.id, u.full_name, u.email, u.password_hash, u.status, u.must_change_password, r.name AS role
        FROM users u
        JOIN roles r ON r.id = u.role_id
        WHERE u.email = $1
@@ -51,7 +51,8 @@ router.post("/login", async (req, res) => {
         id: user.id,
         email: user.email,
         role: user.role,
-        fullName: user.full_name
+        fullName: user.full_name,
+        mustChangePassword: user.must_change_password || false
       }
     });
   } catch (err) {
@@ -62,6 +63,46 @@ router.post("/login", async (req, res) => {
 
 router.get("/me", authRequired, (req, res) => {
   res.json({ success: true, user: req.user });
+});
+
+router.post("/change-password", authRequired, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: "Current and new password are required" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: "New password must be at least 6 characters" });
+    }
+
+    const result = await db.query(
+      `SELECT password_hash FROM users WHERE id = $1 LIMIT 1`,
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const match = await bcrypt.compare(currentPassword, result.rows[0].password_hash);
+    if (!match) {
+      return res.status(401).json({ success: false, message: "Current password is incorrect" });
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+
+    await db.query(
+      `UPDATE users SET password_hash = $1, must_change_password = FALSE WHERE id = $2`,
+      [newHash, req.user.id]
+    );
+
+    res.json({ success: true, message: "Password changed successfully" });
+  } catch (err) {
+    console.error("Change password error:", err);
+    res.status(500).json({ success: false, message: "Failed to change password" });
+  }
 });
 
 module.exports = router;
